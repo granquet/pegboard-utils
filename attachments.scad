@@ -1,10 +1,12 @@
-include <peg_board_vars.scad>
+include<peg_board_vars.scad>
 
+    attachment_sz_factor = 0.85;
 
 epsilon = 0.1;
 clip_height = 2 * hole_size + 2;
 
 module pin() {
+
   rotate([ 0, 0, 15 ])
       cylinder(r = hole_size / 2, h = board_thickness * 1.5 + epsilon,
                center = true, $fn = 12);
@@ -31,10 +33,11 @@ module pin() {
 
 module make_peg_attachment() {
 
-  rotate([ -90, 90, 0 ]) pin();
+  pin();
+  rotate([ 0, 90, 0 ]) translate([ 5, 0, -5 ])
+      linear_extrude(height = hole_spacing + 10) scale(
+          [ attachment_sz_factor, attachment_sz_factor, attachment_sz_factor ])
 
-  translate([ -hole_size, -7.5, -hole_spacing - 5 ])
-      linear_extrude(height = hole_spacing + 10) scale([ 0.9, 0.9, 0.9 ])
           polygon(points = poly_attach);
 }
 

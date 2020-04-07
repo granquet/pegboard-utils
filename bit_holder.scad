@@ -1,20 +1,20 @@
 $fn = 20;
 
-include <peg_board_vars.scad>
+include<peg_board_vars.scad>
 
-// list of drills bits to store in mm : first indice is drill diameter,
-// second is drill holder len
-// second row of drill bits
-drill_list2 = [
-  [ 2, 20 ],
-  [ 3, 25 ],
-  [ 4, 30 ],
-  [ 5, 35 ],
-  [ 6, 35 ],
-  [ 8, 40 ],
-  [ 8, 40 ],
-  [ 10, 45 ],
-];
+    // list of drills bits to store in mm : first indice is drill diameter,
+    // second is drill holder len
+    // second row of drill bits
+    drill_list2 = [
+      [ 2, 20 ],
+      [ 3, 25 ],
+      [ 4, 30 ],
+      [ 5, 35 ],
+      [ 6, 35 ],
+      [ 8, 40 ],
+      [ 8, 40 ],
+      [ 10, 45 ],
+    ];
 
 // first row of drill bits
 drill_list = [
@@ -80,10 +80,6 @@ module generate_bits(bit_vector, depth = 0, idx = 0) {
 }
 
 drill_sizes = [for (i = drill_list) i[0]];
-drill_holder_lens = [for (i = drill_list) i[1]];
-lengths_fixture = [for (i = drill_list) 1] * drill_list;
-len_fixture = lengths_fixture[0] + len(drill_list);
-drill_holder_len = max(drill_holder_lens);
 drill_size = max(drill_sizes);
 
 rotate([ fwd_angle, 0, 0 ]) generate_bits(drill_list, depth = drill_size);
@@ -91,14 +87,7 @@ rotate([ fwd_angle, 0, 0 ])
     translate([ 0, -drill_size - bit_separation - bit_hole_extra, -10 ])
         generate_bits(drill_list2);
 
-module generate_attachments(bit_vector) {
-
-  sum_bits = [for (p = bit_vector) 1] * (bit_vector);
-  drill_heights = [for (p = bit_vector) p[1]];
-  max_height = max(drill_heights);
-  len_fixture =
-      sum_bits[0] + len(bit_vector) * (bit_hole_extra + bit_separation);
-  pegs_space = peg_alter * hole_spacing;
+module generate_wedge(len_fixture, max_height) {
 
   rotate([ 0, 90, 0 ]) linear_extrude(height = len_fixture) polygon(
       [
@@ -106,20 +95,24 @@ module generate_attachments(bit_vector) {
         [ 0, sin(fwd_angle) * max_height ]
       ],
       convexity = 1);
-
-  difference() {
-
+  // if the wedge has not enough meat to have the attachments... add some meat
+  // :)
+  if ((sin(fwd_angle) * max_height) < 5.5) {
     translate([ 0, sin(fwd_angle) * max_height, -cos(fwd_angle) * max_height ])
-        cube([ len_fixture, 5, cos(fwd_angle) * max_height ]);
-
-    for (peg = [0:pegs_space:len_fixture]) {
-      echo(peg);
-
-      translate([
-        peg + 5, sin(fwd_angle) * max_height, -cos(fwd_angle) * max_height
-      ]) linear_extrude(height = max_height) polygon(points = poly_attach);
-    }
+        cube([ len_fixture, 5.5, cos(fwd_angle) * max_height ]);
   }
 }
 
-color("red") generate_attachments(drill_list);
+sum_bits = [for (p = drill_list) 1] * (drill_list);
+len_fix = sum_bits[0] + len(drill_list) * (bit_hole_extra + bit_separation);
+drill_heights = [for (p = drill_list) p[1]];
+max_height = max(drill_heights);
+y_attachment = ((sin(fwd_angle) * max_height) > 5.5)
+                   ? (sin(fwd_angle) * max_height) - 5.5
+                   : (sin(fwd_angle) * max_height);
+
+color("red") difference() {
+  generate_wedge(len_fix, max_height);
+  translate([ 0, y_attachment + 5, -hole_spacing - 4.90 ])
+      generate_attachments(len_fix, hole_spacing + 5);
+};
