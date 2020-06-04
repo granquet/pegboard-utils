@@ -5,7 +5,7 @@ height_fixture = 250;
 girth_top_fixture = 75;
 girth_bottom_fixture = 180;
 
-wrench_slot_poly=[[0,0], [0,20], [10,20], [10,10], [15,10], [20,20], [25,20], [25,10]];
+wrench_slot_poly=[[0,0], [0,20], [10,20], [10,10], [15,10], [20,20], [25,20], [25,5]];
 
 parts_thickness=4;
 
